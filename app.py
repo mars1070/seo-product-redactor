@@ -44,7 +44,9 @@ st.markdown("""
 def get_short_description_prompt(prompt_type, product_name, lang, full_language_names, config):
     """Retourne le prompt approprié selon le type choisi."""
     
-    if prompt_type == "Emoji Benefits":
+    if prompt_type == "Simple Description":
+        return f'''En tant que rédacteur marketing expérimenté, rédigez une description concise et logique à mon persona sans le citer, à chaque réponse vous devez changer le style pour [{product_name}]. Analysez les caractéristiques du produit et identifiez les segments de clientèle les plus susceptibles d'être intéressés. La description doit être encapsulée dans une balise <p>, comporter exactement 3 phrases courtes, et mettre en avant les principales caractéristiques et avantages du produit. Adoptez un ton [préciser le ton souhaité, par exemple, professionnel, amical, dynamique] et veillez à optimiser le contenu pour le référencement naturel en intégrant les mots-clés et synonymes. Commencez par un bénéfice ou une objection, ou une douleur en fonction du produit et de la niche. Rédigez uniquement dans la langue suivante : {full_language_names[lang]} et la réponse uniquement en <p> sans commentaires ni rien d'autre.'''
+    else:  # "Emoji Benefits"
         return f'''Create 4 benefits with emojis for this product: "{product_name}" in {full_language_names[lang]}.
 
 OUTPUT FORMAT - COPY EXACTLY:
@@ -58,39 +60,6 @@ RULES:
 
 Example format:
 <p>🔒 Secure storage<br>💻 Plug-and-play<br>🌐 Global access<br>🤖 Automated updates</p>'''
-    else:  # "Simple Description"
-        return f'''Write a compelling short product description in {full_language_names[lang]} for: {product_name}
-
-CRITICAL LANGUAGE REQUIREMENT:
-- Write ONLY in {full_language_names[lang]}
-- NO words in other languages
-- NO mixing languages
-- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
-
-CRITICAL FORMAT REQUIREMENT:
-- Return ONLY a single <p> tag containing your text
-- Exact format must be: <p>Your text here</p>
-- NO other text or tags allowed
-- NO comments
-- NO explanations
-- NO line breaks
-- ONLY <p>text</p>
-
-WRITING GUIDELINES:
-1. Start with one of these approaches:
-   - Direct benefit
-   - Key feature with benefit
-   - Problem-solution
-   - Professional tone
-
-Content requirements:
-- Focus on technical aspects
-- Highlight quality and performance
-- Use precise terminology
-- Keep it professional and straightforward
-- Adapt tone to target market culture
-
-Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph, nothing else.'''
 
 def validate_emoji_format(text):
     """Valide et corrige le format du texte avec emojis."""
