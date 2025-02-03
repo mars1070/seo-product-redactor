@@ -40,161 +40,116 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 def generate_descriptions(client, product_name, config):
-    """Génère des descriptions courtes et longues pour un produit."""
+    """Generates short and long descriptions for a product."""
     
-    # Mapping des langues
-    language_mapping = {
-        "Français": "fr",
-        "Anglais (US)": "en_us",
-        "Anglais (UK)": "en_uk",
-        "Espagnol": "es",
-        "Allemand": "de",
-        "Italien": "it",
-        "Portugais": "pt",
-        "Néerlandais": "nl",
-        "Polonais": "pl",
-        "Grec": "el",
-        "Turc": "tr",
-        "Roumain": "ro",
-        "Norvégien": "no",
-        "Suédois": "sv"
-    }
-    
-    # Détermination de la langue
-    if config['target_language'] == "Auto-détection":
-        lang = detect_language(product_name)
-    else:
-        lang = language_mapping.get(config['target_language'], 'en_us')
-    
-    # Mapping des noms complets des langues
-    full_language_names = {
-        'fr': 'FRENCH',
-        'en_us': 'AMERICAN ENGLISH',
-        'en_uk': 'BRITISH ENGLISH',
-        'es': 'SPANISH',
-        'de': 'GERMAN',
-        'it': 'ITALIAN',
-        'pt': 'PORTUGUESE',
-        'nl': 'DUTCH',
-        'pl': 'POLISH',
-        'el': 'GREEK',
-        'tr': 'TURKISH',
-        'ro': 'ROMANIAN',
-        'no': 'NORWEGIAN',
-        'sv': 'SWEDISH'
-    }
+    # Prompt for short description
+    short_prompt = f'''You are a professional e-commerce copywriter. Write a compelling short product description (200-250 characters) for: {product_name}
 
-    try:
-        # Prompt pour la description courte
-        short_prompt = f'''Vous êtes un expert en rédaction. Votre tâche est de créer une description courte de produit en {full_language_names[lang]}.
+CRITICAL FORMAT REQUIREMENT:
+- Return ONLY a single <p> tag containing your text
+- Exact format must be: <p>Your text here</p>
+- NO other text or tags allowed
+- NO comments
+- NO explanations
+- NO line breaks
+- ONLY <p>text</p>
 
-EXIGENCE CRITIQUE DE FORMAT :
-- Vous devez retourner UNIQUEMENT une balise <p> contenant votre texte
-- Le format exact doit être : <p>Votre texte ici</p>
-- AUCUN autre texte ou balise n'est autorisé
-- PAS de commentaires
-- PAS d'explications
-- PAS de titre
-- PAS de sauts de ligne
-- UNIQUEMENT <p>texte</p>
+WRITING GUIDELINES:
+1. Start with one of these approaches (in a short sentence):
+   - Direct benefit
+   - Emotion or experience
+   - Engaging question
+   - Direct action verb
+   - Key feature with benefit
+   - Problem-solution
+   - Projected usage
 
-EXIGENCE CRITIQUE DE LANGUE :
-- Le texte DOIT être UNIQUEMENT en {full_language_names[lang]}
-- Aucun mot dans une autre langue n'est autorisé
-- Si vous ne pouvez pas écrire en {full_language_names[lang]}, répondez "Langue non supportée"
+2. Target audience adaptation:
+   - Automatically adapt to product type (e.g., jewelry → women 30-50, dashcam → men 45-65)
+   - Match tone and style to product category
 
-Produit à décrire : {product_name}
+3. Content requirements:
+   - Main keyword (product name) must be recognizable throughout
+   - Mix features, benefits, and usage naturally
+   - Keep sentences balanced and similar in length
+   - Use precise terms, avoid excessive adjectives
+   - Adapt tone to target market culture
 
-Ton : {config['tone']}
-Style d'écriture : {config['writing_style']}
-Niveau de langage : {config['language_level']}
-Âge cible : {config['target_age']}
-Genre cible : {config['target_gender']}
-Niveau d'expertise : {config['expertise_level']}
-Température : {config['temperature']}
-Mots-clés par texte : {config['keywords_per_text']}
-Style de paragraphe : {config['paragraph_style']}
-Style de titre : {config['title_style']}'''
+4. Structure:
+   - Separate features and benefits into distinct sentences
+   - Maintain natural flow and readability
+   - Link features to specific benefits or concrete usage
 
-        # Prompt pour la description longue
-        long_prompt = f'''Vous êtes un expert en rédaction e-commerce. Créez une description de produit engageante en format HTML qui met en valeur deux avantages spécifiques du produit.
+Remember: The output must be ONLY the HTML paragraph with your description, nothing else.'''
 
-EXIGENCE CRITIQUE DE LANGUE :
-- VOUS DEVEZ ÉCRIRE EN {full_language_names[lang]} UNIQUEMENT
-- Langue de sortie forcée : {full_language_names[lang]}
-- N'UTILISEZ AUCUNE AUTRE LANGUE
-- Cela inclut TOUT le texte : titres, paragraphes et tout autre contenu
-- Si vous ne pouvez pas écrire en {full_language_names[lang]}, répondez "Langue non supportée"
+    # Prompt for long description
+    long_prompt = f'''You are an e-commerce copywriting expert. Create an engaging HTML product description that highlights two specific benefits of the product.
 
-EXIGENCE CRITIQUE DE FORMAT :
-- Retournez UNIQUEMENT le code HTML brut
-- PAS de texte d'introduction comme "Voici la description..."
-- PAS de commentaires ni d'explications
-- UNIQUEMENT les balises <h2> et <p>
-- EXACTEMENT deux titres <h2> et deux paragraphes <p>
+CRITICAL FORMAT REQUIREMENTS:
+- Return ONLY raw HTML code
+- NO introductory text like "Here's the description..."
+- NO comments or explanations
+- ONLY <h2> and <p> tags
+- EXACTLY two <h2> titles and two <p> paragraphs
 
-EXIGENCE CRITIQUE POUR LES PARAGRAPHES :
-- Chaque paragraphe DOIT contenir 3 à 4 phrases bien construites
-- Le nombre de mots DOIT être entre 80 et 100 mots par paragraphe
-- C'est une exigence stricte pour l'optimisation SEO
-- Comptez soigneusement vos mots et phrases avant de soumettre
+CRITICAL PARAGRAPH REQUIREMENTS:
+- Each paragraph MUST contain 3-4 well-constructed sentences
+- Word count MUST be between 80-100 words per paragraph
+- This is a strict requirement for SEO optimization
+- Carefully count your words and sentences before submitting
 
-Directives :
-1. Structure :
-   - Deux titres <h2> : titres descriptifs axés sur des avantages spécifiques (6-10 mots)
-   - Deux paragraphes <p> : EXACTEMENT 3-4 phrases chacun, 80-100 mots, développant chaque avantage
+Guidelines:
+1. Structure:
+   - Two <h2> titles: descriptive benefit-focused headings (6-10 words)
+   - Two <p> paragraphs: EXACTLY 3-4 sentences each, 80-100 words, developing each benefit
    
-2. Style d'écriture :
-   - Titres descriptifs et engageants (6-10 mots)
-   - Incluez l'avantage principal + comment/pourquoi il est important dans chaque titre
-   - Exemple de structure de titre : "Résultats de Qualité Professionnelle pour Vos Soins Quotidiens"
-   - Chaque paragraphe doit avoir 3-4 phrases complètes et bien structurées
-   - Chaque phrase doit exprimer une idée claire
+2. Writing Style:
+   - Descriptive and engaging titles (6-10 words)
+   - Include main benefit + how/why it matters in each title
+   - Example title structure: "Professional Quality Results for Your Daily Care"
+   - Each paragraph must have 3-4 complete, well-structured sentences
+   - Each sentence must express a clear idea
 
-Produit à décrire : {product_name}
+Product to describe: {product_name}
 
-Ton : {config['tone']}
-Style d'écriture : {config['writing_style']}
-Niveau de langage : {config['language_level']}
-Âge cible : {config['target_age']}
-Genre cible : {config['target_gender']}
-Niveau d'expertise : {config['expertise_level']}
-Température : {config['temperature']}
-Mots-clés par texte : {config['keywords_per_text']}
-Style de paragraphe : {config['paragraph_style']}
-Style de titre : {config['title_style']}'''
+Tone: {config['tone']}
+Writing Style: {config['writing_style']}
+Language Level: {config['language_level']}
+Target Age: {config['target_age']}
+Target Gender: {config['target_gender']}
+Expertise Level: {config['expertise_level']}
+Temperature: {config['temperature']}
+Keywords per Text: {config['keywords_per_text']}
+Paragraph Style: {config['paragraph_style']}
+Title Style: {config['title_style']}'''
 
-        # Génération de la description courte
-        short_response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=300,
-            temperature=float(config['temperature']),
-            messages=[{"role": "user", "content": short_prompt}]
-        )
-        short_description = short_response.content[0].text.strip()
+    # Génération de la description courte
+    short_response = client.messages.create(
+        model="claude-3-haiku-20240307",
+        max_tokens=300,
+        temperature=float(config['temperature']),
+        messages=[{"role": "user", "content": short_prompt}]
+    )
+    short_description = short_response.content[0].text.strip()
 
-        # Vérification du format de la description courte
-        if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
-            short_description = f"<p>{short_description}</p>"
-        
-        # Si le texte contient d'autres balises HTML, on les supprime
-        if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
-            short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
+    # Vérification du format de la description courte
+    if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
+        short_description = f"<p>{short_description}</p>"
+    
+    # Si le texte contient d'autres balises HTML, on les supprime
+    if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
+        short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
 
-        # Génération de la description longue
-        long_response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=1000,
-            temperature=float(config['temperature']),
-            messages=[{"role": "user", "content": long_prompt}]
-        )
-        long_description = long_response.content[0].text
+    # Génération de la description longue
+    long_response = client.messages.create(
+        model="claude-3-haiku-20240307",
+        max_tokens=1000,
+        temperature=float(config['temperature']),
+        messages=[{"role": "user", "content": long_prompt}]
+    )
+    long_description = long_response.content[0].text
 
-        return short_description, long_description
-
-    except Exception as e:
-        st.error(f"Erreur lors de la génération des descriptions : {str(e)}")
-        return None, None
+    return short_description, long_description
 
 def process_file(file, api_key, config):
     """Traite un fichier CSV et génère les descriptions."""
