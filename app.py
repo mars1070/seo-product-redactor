@@ -45,26 +45,28 @@ def get_short_description_prompt(prompt_type, product_name, lang, full_language_
     """Retourne le prompt approprié selon le type choisi."""
     
     if prompt_type == "Emoji Benefits":
-        return f'''Create 4 emojis with very short benefits for {product_name} in {full_language_names[lang]}.
-
-CRITICAL LANGUAGE REQUIREMENT:
-- Write ONLY in {full_language_names[lang]}
-- NO words in other languages
-- NO mixing languages
-- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
+        return f'''Create exactly 4 emoji-benefit pairs for this specific product: "{product_name}" in {full_language_names[lang]}.
 
 CRITICAL FORMAT REQUIREMENT:
 - Return ONLY a single <p> tag containing your text
-- Exact format must be: <p>emoji benefit • emoji benefit • emoji benefit • emoji benefit</p>
-- EXACTLY 4 emoji-benefit pairs
-- Each benefit should be 2-4 words maximum
-- Separate pairs with bullet points (•)
-- NO explanations
-- NO detailed sentences
+- EXACT format must be: <p>emoji benefit<br>emoji benefit<br>emoji benefit<br>emoji benefit</p>
+- Each line MUST follow the pattern: emoji followed by 2-4 words
+- MUST use <br> between each line (except after the last line)
+- MUST have exactly 4 lines
+- Each emoji MUST be relevant to the specific benefit
+- Benefits MUST be specific to {product_name}
+- NO bullet points
+- NO other separators
 - NO other text or tags
-- ONLY <p>text</p>
 
-Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph, nothing else.'''
+CRITICAL CONTENT RULES:
+- Focus ONLY on {product_name}
+- Each benefit must be a real advantage of {product_name}
+- NO generic benefits
+- NO placeholder content
+- NO random emojis
+
+Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph with exactly 4 lines, nothing else.'''
     else:  # "Simple Description"
         return f'''Write a compelling short product description in {full_language_names[lang]} for: {product_name}
 
