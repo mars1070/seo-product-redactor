@@ -320,112 +320,115 @@ def main():
         
     client = anthropic.Anthropic(api_key=api_key)
 
-    # Configuration du style de rédaction
-    with st.expander("⚙️ Configuration du rédacteur", expanded=False):
-        col1, col2 = st.columns(2)
+    # Sidebar pour la configuration
+    with st.sidebar:
+        st.header("⚙️ Configuration")
         
-        with col1:
-            st.subheader("Style de rédaction")
-            
-            target_language = st.selectbox(
-                "Langue de rédaction",
-                [
-                    "Français", 
-                    "Anglais (US)", 
-                    "Anglais (UK)",
-                    "Espagnol", 
-                    "Allemand", 
-                    "Italien", 
-                    "Portugais",
-                    "Néerlandais",
-                    "Polonais",
-                    "Grec",
-                    "Turc",
-                    "Roumain",
-                    "Norvégien",
-                    "Suédois",
-                    "Auto-détection"
-                ],
-                index=14,
-                help="Choisissez la langue de rédaction ou laissez l'auto-détection"
-            )
-            
-            tone = st.select_slider(
-                "Ton",
-                options=["Très professionnel", "Professionnel", "Équilibré", "Décontracté", "Très décontracté"],
-                value="Équilibré"
-            )
-            
-            writing_style = st.select_slider(
-                "Style d'écriture",
-                options=["Très persuasif", "Persuasif", "Équilibré", "Informatif", "Très informatif"],
-                value="Équilibré"
-            )
-            
-            language_level = st.select_slider(
-                "Niveau de langage",
-                options=["Simple", "Standard", "Technique", "Expert"],
-                value="Standard"
-            )
-
-        with col2:
-            st.subheader("Public cible")
-            
-            target_age = st.select_slider(
-                "Âge cible",
-                options=["18-25", "25-35", "35-50", "50+", "Tous âges"],
-                value="Tous âges"
-            )
-            
-            target_gender = st.radio(
-                "Genre cible",
-                options=["Homme", "Femme", "Tous"],
-                index=2
-            )
-            
-            expertise_level = st.select_slider(
-                "Niveau d'expertise",
-                options=["Débutant", "Intermédiaire", "Avancé", "Expert", "Tous niveaux"],
-                value="Tous niveaux"
-            )
-
+        # Section Configuration de base
+        st.subheader("Configuration de base")
+        
+        # Choix de la langue
+        target_language = st.selectbox(
+            "Langue de rédaction",
+            [
+                "Français", 
+                "Anglais (US)", 
+                "Anglais (UK)",
+                "Espagnol", 
+                "Allemand", 
+                "Italien", 
+                "Portugais",
+                "Néerlandais",
+                "Polonais",
+                "Grec",
+                "Turc",
+                "Roumain",
+                "Norvégien",
+                "Suédois",
+                "Auto-détection"
+            ],
+            index=14,
+            help="Choisissez la langue de rédaction ou laissez l'auto-détection"
+        )
+        
+        # Type de description courte
+        short_description_type = st.radio(
+            "Style de description courte",
+            ["Emoji Benefits", "Simple Description"],
+            help="Choisissez entre une description avec emojis ou une description simple"
+        )
+        
+        # Section Style de rédaction
+        st.subheader("Style de rédaction")
+        
+        tone = st.select_slider(
+            "Ton",
+            options=["Très formel", "Formel", "Neutre", "Décontracté", "Très décontracté"],
+            value="Neutre"
+        )
+        
+        writing_style = st.select_slider(
+            "Style d'écriture",
+            options=["Très direct", "Direct", "Équilibré", "Descriptif", "Très descriptif"],
+            value="Équilibré"
+        )
+        
+        language_level = st.select_slider(
+            "Niveau de langage",
+            options=["Très simple", "Simple", "Moyen", "Complexe", "Très complexe"],
+            value="Moyen"
+        )
+        
+        # Section Audience cible
+        st.subheader("Audience cible")
+        
+        target_age = st.select_slider(
+            "Âge cible",
+            options=["13-17", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"],
+            value="25-34"
+        )
+        
+        target_gender = st.radio(
+            "Genre cible",
+            ["Tous", "Homme", "Femme"],
+            index=0
+        )
+        
+        expertise_level = st.select_slider(
+            "Niveau d'expertise",
+            options=["Débutant", "Intermédiaire", "Avancé", "Expert"],
+            value="Intermédiaire"
+        )
+        
+        # Section Paramètres avancés
         st.subheader("Paramètres avancés")
-        col3, col4 = st.columns(2)
         
-        with col3:
-            temperature = st.slider(
-                "Créativité (température)",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.7,
-                step=0.1
-            )
-            
-            keywords_per_text = st.number_input(
-                "Mots-clés par texte",
-                min_value=1,
-                max_value=5,
-                value=3
-            )
-
-        with col4:
-            paragraph_style = st.select_slider(
-                "Style de paragraphe",
-                options=["Très concis", "Concis", "Standard", "Détaillé", "Très détaillé"],
-                value="Standard"
-            )
-            
-            title_style = st.select_slider(
-                "Style de titre",
-                options=["Très court", "Court", "Standard", "Long", "Très long"],
-                value="Standard"
-            )
-            
-            short_description_type = st.radio(
-                "Style de description courte",
-                ["Emoji Benefits", "Simple Description"],
-                help="Choisissez le style de la description courte"
-            )
+        temperature = st.slider(
+            "Température",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.7,
+            step=0.1,
+            help="Contrôle la créativité (0 = conservateur, 1 = créatif)"
+        )
+        
+        keywords_per_text = st.select_slider(
+            "Mots-clés par texte",
+            options=["Minimal", "Peu", "Moyen", "Beaucoup", "Maximum"],
+            value="Moyen"
+        )
+        
+        paragraph_style = st.select_slider(
+            "Style de paragraphe",
+            options=["Très court", "Court", "Standard", "Long", "Très long"],
+            value="Standard"
+        )
+        
+        title_style = st.select_slider(
+            "Style de titre",
+            options=["Très court", "Court", "Standard", "Long", "Très long"],
+            value="Standard"
+        )
 
     # Stockage des paramètres dans la session
     if 'config' not in st.session_state:
@@ -434,7 +437,7 @@ def main():
     # Mise à jour de la configuration
     st.session_state.config = {
         'target_language': target_language,
-        'short_description_type': short_description_type,
+        'short_description_type': short_description_type,  # Ajout du type de description courte
         'tone': tone,
         'writing_style': writing_style,
         'language_level': language_level,
