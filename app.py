@@ -41,6 +41,64 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+def get_short_description_prompt(prompt_type, product_name, lang, full_language_names, config):
+    """Retourne le prompt approprié selon le type choisi."""
+    
+    if prompt_type == "Emoji Benefits":
+        return f'''Create 4 emojis with very short benefits for {product_name} in {full_language_names[lang]}.
+
+CRITICAL LANGUAGE REQUIREMENT:
+- Write ONLY in {full_language_names[lang]}
+- NO words in other languages
+- NO mixing languages
+- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
+
+CRITICAL FORMAT REQUIREMENT:
+- Return ONLY a single <p> tag containing your text
+- Exact format must be: <p>emoji benefit • emoji benefit • emoji benefit • emoji benefit</p>
+- EXACTLY 4 emoji-benefit pairs
+- Each benefit should be 2-4 words maximum
+- Separate pairs with bullet points (•)
+- NO explanations
+- NO detailed sentences
+- NO other text or tags
+- ONLY <p>text</p>
+
+Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph, nothing else.'''
+    else:  # "Simple Description"
+        return f'''Write a compelling short product description in {full_language_names[lang]} for: {product_name}
+
+CRITICAL LANGUAGE REQUIREMENT:
+- Write ONLY in {full_language_names[lang]}
+- NO words in other languages
+- NO mixing languages
+- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
+
+CRITICAL FORMAT REQUIREMENT:
+- Return ONLY a single <p> tag containing your text
+- Exact format must be: <p>Your text here</p>
+- NO other text or tags allowed
+- NO comments
+- NO explanations
+- NO line breaks
+- ONLY <p>text</p>
+
+WRITING GUIDELINES:
+1. Start with one of these approaches:
+   - Direct benefit
+   - Key feature with benefit
+   - Problem-solution
+   - Professional tone
+
+Content requirements:
+- Focus on technical aspects
+- Highlight quality and performance
+- Use precise terminology
+- Keep it professional and straightforward
+- Adapt tone to target market culture
+
+Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph, nothing else.'''
+
 def generate_descriptions(client, product_name, config):
     """Generates short and long descriptions for a product."""
     
@@ -90,51 +148,15 @@ def generate_descriptions(client, product_name, config):
     }
 
     try:
-        # Prompt for short description
-        short_prompt = f'''You are a professional e-commerce copywriter. Write a compelling short product description (200-250 characters) in {full_language_names[lang]} for: {product_name}
-
-CRITICAL LANGUAGE REQUIREMENT:
-- Write ONLY in {full_language_names[lang]}
-- NO words in other languages allowed
-- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
-
-CRITICAL FORMAT REQUIREMENT:
-- Return ONLY a single <p> tag containing your text
-- Exact format must be: <p>Your text here</p>
-- NO other text or tags allowed
-- NO comments
-- NO explanations
-- NO line breaks
-- ONLY <p>text</p>
-
-WRITING GUIDELINES:
-1. Start with one of these approaches (in a short sentence):
-   - Direct benefit
-   - Emotion or experience
-   - Engaging question
-   - Direct action verb
-   - Key feature with benefit
-   - Problem-solution
-   - Projected usage
-
-2. Target audience adaptation:
-   - Automatically adapt to product type (e.g., jewelry → women 30-50, dashcam → men 45-65)
-   - Match tone and style to product category
-
-3. Content requirements:
-   - Main keyword (product name) must be recognizable throughout
-   - Mix features, benefits, and usage naturally
-   - Keep sentences balanced and similar in length
-   - Use precise terms, avoid excessive adjectives
-   - Adapt tone to target market culture
-
-4. Structure:
-   - Separate features and benefits into distinct sentences
-   - Maintain natural flow and readability
-   - Link features to specific benefits or concrete usage
-
-Remember: The output must be ONLY the HTML paragraph with your description in {full_language_names[lang]}, nothing else.'''
-
+        # Get the appropriate short description prompt
+        short_prompt = get_short_description_prompt(
+            config['short_description_type'],
+            product_name,
+            lang,
+            full_language_names,
+            config
+        )
+        
         # Prompt for long description
         long_prompt = f'''You are an e-commerce copywriting expert. Create an engaging HTML product description in {full_language_names[lang]} that highlights two specific benefits of the product.
 
@@ -398,6 +420,12 @@ def main():
                 options=["Très court", "Court", "Standard", "Long", "Très long"],
                 value="Standard"
             )
+            
+            short_description_type = st.radio(
+                "Style de description courte",
+                ["Emoji Benefits", "Simple Description"],
+                help="Choisissez le style de la description courte"
+            )
 
     # Stockage des paramètres dans la session
     if 'config' not in st.session_state:
@@ -406,6 +434,7 @@ def main():
     # Mise à jour de la configuration
     st.session_state.config = {
         'target_language': target_language,
+        'short_description_type': short_description_type,
         'tone': tone,
         'writing_style': writing_style,
         'language_level': language_level,
