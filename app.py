@@ -45,28 +45,19 @@ def get_short_description_prompt(prompt_type, product_name, lang, full_language_
     """Retourne le prompt approprié selon le type choisi."""
     
     if prompt_type == "Emoji Benefits":
-        return f'''Create exactly 4 emoji-benefit pairs for this specific product: "{product_name}" in {full_language_names[lang]}.
+        return f'''Create 4 benefits with emojis for this product: "{product_name}" in {full_language_names[lang]}.
 
-CRITICAL FORMAT REQUIREMENT:
-- Return ONLY a single <p> tag containing your text
-- EXACT format must be: <p>emoji benefit<br>emoji benefit<br>emoji benefit<br>emoji benefit</p>
-- Each line MUST follow the pattern: emoji followed by 2-4 words
-- MUST use <br> between each line (except after the last line)
-- MUST have exactly 4 lines
-- Each emoji MUST be relevant to the specific benefit
-- Benefits MUST be specific to {product_name}
-- NO bullet points
-- NO other separators
-- NO other text or tags
+OUTPUT FORMAT - COPY EXACTLY:
+<p>emoji benefit<br>emoji benefit<br>emoji benefit<br>emoji benefit</p>
 
-CRITICAL CONTENT RULES:
-- Focus ONLY on {product_name}
-- Each benefit must be a real advantage of {product_name}
-- NO generic benefits
-- NO placeholder content
-- NO random emojis
+RULES:
+- Use EXACTLY this format with <br> tags
+- Each line: 1 emoji + 2-3 words
+- Benefits must be specific to {product_name}
+- Each emoji must match its benefit
 
-Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph with exactly 4 lines, nothing else.'''
+Example format:
+<p>🔒 Secure storage<br>💻 Plug-and-play<br>🌐 Global access<br>🤖 Automated updates</p>'''
     else:  # "Simple Description"
         return f'''Write a compelling short product description in {full_language_names[lang]} for: {product_name}
 
