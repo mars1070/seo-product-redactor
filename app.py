@@ -92,6 +92,13 @@ EXIGENCE CRITIQUE DE LANGUE :
 - Langue de sortie forcée : {full_language_names[lang]}
 - N'UTILISEZ AUCUNE AUTRE LANGUE
 
+EXIGENCE CRITIQUE DE FORMAT :
+- Retournez UNIQUEMENT le texte entre balises <p></p>
+- PAS de texte en dehors des balises
+- PAS de commentaires ni d'explications
+- PAS de titre "Description courte"
+- UNIQUEMENT le HTML brut
+
 Produit à décrire : {product_name}
 
 Ton : {config['tone']}
@@ -114,6 +121,13 @@ EXIGENCE CRITIQUE DE LANGUE :
 - N'UTILISEZ AUCUNE AUTRE LANGUE
 - Cela inclut TOUT le texte : titres, paragraphes et tout autre contenu
 - Si vous ne pouvez pas écrire en {full_language_names[lang]}, répondez "Langue non supportée"
+
+EXIGENCE CRITIQUE DE FORMAT :
+- Retournez UNIQUEMENT le code HTML brut
+- PAS de texte d'introduction comme "Voici la description..."
+- PAS de commentaires ni d'explications
+- UNIQUEMENT les balises <h2> et <p>
+- EXACTEMENT deux titres <h2> et deux paragraphes <p>
 
 EXIGENCE CRITIQUE POUR LES PARAGRAPHES :
 - Chaque paragraphe DOIT contenir 3 à 4 phrases bien construites
