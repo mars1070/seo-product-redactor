@@ -147,22 +147,22 @@ Style de paragraphe : {config['paragraph_style']}
 Style de titre : {config['title_style']}'''
 
         # Génération de la description courte
-        short_completion = client.completions.create(
-            model="claude-instant-1.2",
-            prompt=f"\n\nHuman: {short_prompt}\n\nAssistant: ",
-            max_tokens_to_sample=1000,
-            temperature=float(config['temperature'])
+        short_response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens_to_sample=300,
+            temperature=float(config['temperature']),
+            messages=[{"role": "user", "content": short_prompt}]
         )
-        short_description = short_completion.completion
+        short_description = short_response.content[0].text
 
         # Génération de la description longue
-        long_completion = client.completions.create(
-            model="claude-instant-1.2",
-            prompt=f"\n\nHuman: {long_prompt}\n\nAssistant: ",
-            max_tokens_to_sample=2000,
-            temperature=float(config['temperature'])
+        long_response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens_to_sample=1000,
+            temperature=float(config['temperature']),
+            messages=[{"role": "user", "content": long_prompt}]
         )
-        long_description = long_completion.completion
+        long_description = long_response.content[0].text
 
         return short_description.strip(), long_description.strip()
 
