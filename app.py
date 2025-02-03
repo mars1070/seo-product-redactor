@@ -7,6 +7,7 @@ import tempfile
 import zipfile
 import io
 import re
+from langdetect import detect, lang_detect_exception
 
 # Configuration de la page Streamlit
 st.set_page_config(
@@ -42,8 +43,59 @@ st.markdown("""
 def generate_descriptions(client, product_name, config):
     """Generates short and long descriptions for a product."""
     
-    # Prompt for short description
-    short_prompt = f'''You are a professional e-commerce copywriter. Write a compelling short product description (200-250 characters) for: {product_name}
+    # Language mapping
+    language_mapping = {
+        "Français": "fr",
+        "Anglais (US)": "en_us",
+        "Anglais (UK)": "en_uk",
+        "Espagnol": "es",
+        "Allemand": "de",
+        "Italien": "it",
+        "Portugais": "pt",
+        "Néerlandais": "nl",
+        "Polonais": "pl",
+        "Grec": "el",
+        "Turc": "tr",
+        "Roumain": "ro",
+        "Norvégien": "no",
+        "Suédois": "sv"
+    }
+    
+    # Language detection
+    if config['target_language'] == "Auto-détection":
+        try:
+            lang = detect(product_name)
+        except lang_detect_exception.LangDetectException:
+            lang = 'en_us'
+    else:
+        lang = language_mapping.get(config['target_language'], 'en_us')
+    
+    # Full language names
+    full_language_names = {
+        'fr': 'FRENCH',
+        'en_us': 'AMERICAN ENGLISH',
+        'en_uk': 'BRITISH ENGLISH',
+        'es': 'SPANISH',
+        'de': 'GERMAN',
+        'it': 'ITALIAN',
+        'pt': 'PORTUGUESE',
+        'nl': 'DUTCH',
+        'pl': 'POLISH',
+        'el': 'GREEK',
+        'tr': 'TURKISH',
+        'ro': 'ROMANIAN',
+        'no': 'NORWEGIAN',
+        'sv': 'SWEDISH'
+    }
+
+    try:
+        # Prompt for short description
+        short_prompt = f'''You are a professional e-commerce copywriter. Write a compelling short product description (200-250 characters) in {full_language_names[lang]} for: {product_name}
+
+CRITICAL LANGUAGE REQUIREMENT:
+- Write ONLY in {full_language_names[lang]}
+- NO words in other languages allowed
+- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
 
 CRITICAL FORMAT REQUIREMENT:
 - Return ONLY a single <p> tag containing your text
@@ -80,10 +132,16 @@ WRITING GUIDELINES:
    - Maintain natural flow and readability
    - Link features to specific benefits or concrete usage
 
-Remember: The output must be ONLY the HTML paragraph with your description, nothing else.'''
+Remember: The output must be ONLY the HTML paragraph with your description in {full_language_names[lang]}, nothing else.'''
 
-    # Prompt for long description
-    long_prompt = f'''You are an e-commerce copywriting expert. Create an engaging HTML product description that highlights two specific benefits of the product.
+        # Prompt for long description
+        long_prompt = f'''You are an e-commerce copywriting expert. Create an engaging HTML product description in {full_language_names[lang]} that highlights two specific benefits of the product.
+
+CRITICAL LANGUAGE REQUIREMENT:
+- Write ONLY in {full_language_names[lang]}
+- NO words in other languages allowed
+- This includes ALL text: titles, paragraphs, and any other content
+- If you cannot write in {full_language_names[lang]}, respond with "Language not supported"
 
 CRITICAL FORMAT REQUIREMENTS:
 - Return ONLY raw HTML code
@@ -123,33 +181,36 @@ Keywords per Text: {config['keywords_per_text']}
 Paragraph Style: {config['paragraph_style']}
 Title Style: {config['title_style']}'''
 
-    # Génération de la description courte
-    short_response = client.messages.create(
-        model="claude-3-haiku-20240307",
-        max_tokens=300,
-        temperature=float(config['temperature']),
-        messages=[{"role": "user", "content": short_prompt}]
-    )
-    short_description = short_response.content[0].text.strip()
+        # Génération de la description courte
+        short_response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=300,
+            temperature=float(config['temperature']),
+            messages=[{"role": "user", "content": short_prompt}]
+        )
+        short_description = short_response.content[0].text.strip()
 
-    # Vérification du format de la description courte
-    if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
-        short_description = f"<p>{short_description}</p>"
-    
-    # Si le texte contient d'autres balises HTML, on les supprime
-    if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
-        short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
+        # Vérification du format de la description courte
+        if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
+            short_description = f"<p>{short_description}</p>"
+        
+        # Si le texte contient d'autres balises HTML, on les supprime
+        if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
+            short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
 
-    # Génération de la description longue
-    long_response = client.messages.create(
-        model="claude-3-haiku-20240307",
-        max_tokens=1000,
-        temperature=float(config['temperature']),
-        messages=[{"role": "user", "content": long_prompt}]
-    )
-    long_description = long_response.content[0].text
+        # Génération de la description longue
+        long_response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1000,
+            temperature=float(config['temperature']),
+            messages=[{"role": "user", "content": long_prompt}]
+        )
+        long_description = long_response.content[0].text
 
-    return short_description, long_description
+        return short_description, long_description
+    except Exception as e:
+        st.error(f"Erreur lors de la génération des descriptions : {str(e)}")
+        return None, None
 
 def process_file(file, api_key, config):
     """Traite un fichier CSV et génère les descriptions."""
