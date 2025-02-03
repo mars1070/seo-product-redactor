@@ -101,6 +101,30 @@ Content requirements:
 
 Remember: Write ONLY in {full_language_names[lang]} and return ONLY the HTML paragraph, nothing else.'''
 
+def validate_emoji_format(text):
+    """Valide et corrige le format du texte avec emojis."""
+    if not text.startswith("<p>") or not text.endswith("</p>"):
+        return None
+    
+    # Enlever les tags p
+    content = text[3:-4]
+    
+    # Séparer les lignes
+    lines = [line.strip() for line in content.split("•") if line.strip()]
+    if len(lines) != 4:
+        lines = [line.strip() for line in content.split("<br>") if line.strip()]
+    if len(lines) != 4:
+        return None
+        
+    # Vérifier que chaque ligne commence par un emoji
+    for line in lines:
+        if not any(c for c in line[:2] if c.isspace() is False and ord(c) > 255):
+            return None
+    
+    # Reformater avec <br>
+    formatted = "<p>" + "<br>".join(lines) + "</p>"
+    return formatted
+
 def generate_descriptions(client, product_name, config):
     """Generates short and long descriptions for a product."""
     
@@ -209,30 +233,30 @@ Title Style: {config['title_style']}'''
         # Génération de la description courte
         short_response = client.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens=300,
-            temperature=float(config['temperature']),
+            max_tokens=1000,
+            temperature=config['temperature'],
+            system="You are a professional e-commerce copywriter specialized in product descriptions.",
             messages=[{"role": "user", "content": short_prompt}]
         )
-        short_description = short_response.content[0].text.strip()
-
-        # Vérification du format de la description courte
-        if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
-            short_description = f"<p>{short_description}</p>"
+        short_desc = short_response.content[0].text
         
-        # Si le texte contient d'autres balises HTML, on les supprime
-        if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
-            short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
-
+        # Si c'est une description avec emojis, valider et corriger le format
+        if config['short_description_type'] == "Emoji Benefits":
+            short_desc = validate_emoji_format(short_desc)
+            if not short_desc:
+                return None, None
+        
         # Génération de la description longue
         long_response = client.messages.create(
             model="claude-3-haiku-20240307",
             max_tokens=1000,
-            temperature=float(config['temperature']),
+            temperature=config['temperature'],
+            system="You are a professional e-commerce copywriter specialized in product descriptions.",
             messages=[{"role": "user", "content": long_prompt}]
         )
         long_description = long_response.content[0].text
 
-        return short_description, long_description
+        return short_desc, long_description
     except Exception as e:
         st.error(f"Erreur lors de la génération des descriptions : {str(e)}")
         return None, None
