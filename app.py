@@ -82,22 +82,15 @@ def generate_descriptions(client, product_name, config):
         'no': 'NORWEGIAN',
         'sv': 'SWEDISH'
     }
-    
-    # Prompt pour la description courte
-    short_prompt = f'''Vous êtes un expert en rédaction. Écrivez une description courte de produit (200-250 caractères) qui soit engageante et optimisée pour le SEO.
+
+    try:
+        # Prompt pour la description courte
+        short_prompt = f'''Vous êtes un expert en rédaction. Écrivez une description courte de produit.
 
 EXIGENCE CRITIQUE DE LANGUE :
 - VOUS DEVEZ ÉCRIRE EN {full_language_names[lang]} UNIQUEMENT
 - Langue de sortie forcée : {full_language_names[lang]}
 - N'UTILISEZ AUCUNE AUTRE LANGUE
-- Si vous ne pouvez pas écrire en {full_language_names[lang]}, répondez "Langue non supportée"
-
-Directives :
-- Concentrez-vous sur un avantage ou une caractéristique principale
-- Utilisez un langage naturel et fluide
-- Évitez les adjectifs excessifs
-- Une idée par phrase
-- Retournez UNIQUEMENT la description entre balises <p>, sans guillemets ni explications
 
 Produit à décrire : {product_name}
 
@@ -112,8 +105,8 @@ Mots-clés par texte : {config['keywords_per_text']}
 Style de paragraphe : {config['paragraph_style']}
 Style de titre : {config['title_style']}'''
 
-    # Prompt pour la description longue
-    long_prompt = f'''Vous êtes un expert en rédaction e-commerce. Créez une description de produit engageante en format HTML qui met en valeur deux avantages spécifiques du produit.
+        # Prompt pour la description longue
+        long_prompt = f'''Vous êtes un expert en rédaction e-commerce. Créez une description de produit engageante en format HTML qui met en valeur deux avantages spécifiques du produit.
 
 EXIGENCE CRITIQUE DE LANGUE :
 - VOUS DEVEZ ÉCRIRE EN {full_language_names[lang]} UNIQUEMENT
@@ -139,16 +132,6 @@ Directives :
    - Exemple de structure de titre : "Résultats de Qualité Professionnelle pour Vos Soins Quotidiens"
    - Chaque paragraphe doit avoir 3-4 phrases complètes et bien structurées
    - Chaque phrase doit exprimer une idée claire
-   - Langage naturel et fluide
-   - Évitez les adjectifs excessifs
-   - Concentrez-vous sur les avantages concrets
-   - Les paragraphes doivent être substantiels (80-100 mots)
-   
-3. Format :
-   - Retournez UNIQUEMENT du HTML avec balises <h2> et <p>
-   - Pas de commentaires ni d'explications
-   - Pas de guillemets autour du texte
-   - Vérifiez le nombre de phrases (3-4) et de mots (80-100) avant de soumettre
 
 Produit à décrire : {product_name}
 
@@ -163,27 +146,26 @@ Mots-clés par texte : {config['keywords_per_text']}
 Style de paragraphe : {config['paragraph_style']}
 Style de titre : {config['title_style']}'''
 
-    try:
         # Génération de la description courte
-        short_response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=300,
-            temperature=config['temperature'],
-            messages=[{"role": "user", "content": short_prompt}]
+        short_completion = client.completions.create(
+            model="claude-2",
+            prompt=f"\n\nHuman: {short_prompt}\n\nAssistant: ",
+            max_tokens_to_sample=1000,
+            temperature=float(config['temperature'])
         )
-        short_desc = short_response.content[0].text
-        
+        short_description = short_completion.completion
+
         # Génération de la description longue
-        long_response = client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=1000,
-            temperature=config['temperature'],
-            messages=[{"role": "user", "content": long_prompt}]
+        long_completion = client.completions.create(
+            model="claude-2",
+            prompt=f"\n\nHuman: {long_prompt}\n\nAssistant: ",
+            max_tokens_to_sample=2000,
+            temperature=float(config['temperature'])
         )
-        long_desc = long_response.content[0].text
-        
-        return short_desc, long_desc
-        
+        long_description = long_completion.completion
+
+        return short_description.strip(), long_description.strip()
+
     except Exception as e:
         st.error(f"Erreur lors de la génération des descriptions : {str(e)}")
         return None, None
