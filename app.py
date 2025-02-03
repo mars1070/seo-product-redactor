@@ -8,6 +8,7 @@ import zipfile
 import io
 import re
 from langdetect import detect, lang_detect_exception
+import time
 
 # Configuration de la page Streamlit
 st.set_page_config(
@@ -264,6 +265,11 @@ def process_file(file, api_key, config):
                 st.markdown("---")
             
             progress_bar.progress((index + 1) / len(df))
+            
+            # Pause entre chaque produit (3 secondes)
+            if index < len(df) - 1:  # Ne pas attendre après le dernier produit
+                with st.spinner(f"Pause de 3 secondes avant le prochain produit..."):
+                    time.sleep(3)
         
         status_text.text("Traitement terminé!")
         return df
