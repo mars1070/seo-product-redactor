@@ -149,7 +149,7 @@ Style de titre : {config['title_style']}'''
         # Génération de la description courte
         short_response = client.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens_to_sample=300,
+            max_tokens=300,
             temperature=float(config['temperature']),
             messages=[{"role": "user", "content": short_prompt}]
         )
@@ -158,7 +158,7 @@ Style de titre : {config['title_style']}'''
         # Génération de la description longue
         long_response = client.messages.create(
             model="claude-3-haiku-20240307",
-            max_tokens_to_sample=1000,
+            max_tokens=1000,
             temperature=float(config['temperature']),
             messages=[{"role": "user", "content": long_prompt}]
         )
