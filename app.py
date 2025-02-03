@@ -148,7 +148,7 @@ Style de titre : {config['title_style']}'''
 
         # Génération de la description courte
         short_completion = client.completions.create(
-            model="claude-2",
+            model="claude-instant-1.2",
             prompt=f"\n\nHuman: {short_prompt}\n\nAssistant: ",
             max_tokens_to_sample=1000,
             temperature=float(config['temperature'])
@@ -157,7 +157,7 @@ Style de titre : {config['title_style']}'''
 
         # Génération de la description longue
         long_completion = client.completions.create(
-            model="claude-2",
+            model="claude-instant-1.2",
             prompt=f"\n\nHuman: {long_prompt}\n\nAssistant: ",
             max_tokens_to_sample=2000,
             temperature=float(config['temperature'])
