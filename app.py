@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import tempfile
 import zipfile
 import io
+import re
 
 # Configuration de la page Streamlit
 st.set_page_config(
@@ -85,19 +86,22 @@ def generate_descriptions(client, product_name, config):
 
     try:
         # Prompt pour la description courte
-        short_prompt = f'''Vous êtes un expert en rédaction. Écrivez une description courte de produit.
-
-EXIGENCE CRITIQUE DE LANGUE :
-- VOUS DEVEZ ÉCRIRE EN {full_language_names[lang]} UNIQUEMENT
-- Langue de sortie forcée : {full_language_names[lang]}
-- N'UTILISEZ AUCUNE AUTRE LANGUE
+        short_prompt = f'''Vous êtes un expert en rédaction. Votre tâche est de créer une description courte de produit en {full_language_names[lang]}.
 
 EXIGENCE CRITIQUE DE FORMAT :
-- Retournez UNIQUEMENT le texte entre balises <p></p>
-- PAS de texte en dehors des balises
-- PAS de commentaires ni d'explications
-- PAS de titre "Description courte"
-- UNIQUEMENT le HTML brut
+- Vous devez retourner UNIQUEMENT une balise <p> contenant votre texte
+- Le format exact doit être : <p>Votre texte ici</p>
+- AUCUN autre texte ou balise n'est autorisé
+- PAS de commentaires
+- PAS d'explications
+- PAS de titre
+- PAS de sauts de ligne
+- UNIQUEMENT <p>texte</p>
+
+EXIGENCE CRITIQUE DE LANGUE :
+- Le texte DOIT être UNIQUEMENT en {full_language_names[lang]}
+- Aucun mot dans une autre langue n'est autorisé
+- Si vous ne pouvez pas écrire en {full_language_names[lang]}, répondez "Langue non supportée"
 
 Produit à décrire : {product_name}
 
@@ -167,7 +171,15 @@ Style de titre : {config['title_style']}'''
             temperature=float(config['temperature']),
             messages=[{"role": "user", "content": short_prompt}]
         )
-        short_description = short_response.content[0].text
+        short_description = short_response.content[0].text.strip()
+
+        # Vérification du format de la description courte
+        if not short_description.startswith('<p>') or not short_description.endswith('</p>'):
+            short_description = f"<p>{short_description}</p>"
+        
+        # Si le texte contient d'autres balises HTML, on les supprime
+        if '<' in short_description[3:-4]:  # Vérifie entre <p> et </p>
+            short_description = f"<p>{re.sub('<[^>]+>', '', short_description[3:-4])}</p>"
 
         # Génération de la description longue
         long_response = client.messages.create(
@@ -178,7 +190,7 @@ Style de titre : {config['title_style']}'''
         )
         long_description = long_response.content[0].text
 
-        return short_description.strip(), long_description.strip()
+        return short_description, long_description
 
     except Exception as e:
         st.error(f"Erreur lors de la génération des descriptions : {str(e)}")
